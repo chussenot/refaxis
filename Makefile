@@ -1,4 +1,5 @@
-# Makefile for Tangram ID Finder
+# Include the Redis-related commands from redis.Makefile
+include services/redis.Makefile
 
 # Set the default target
 .DEFAULT_GOAL := help

@@ -7,12 +7,15 @@
 using json = nlohmann::json;
 
 int main() {
-    // Get the Redis host and port from environment variables
+    // Get the Redis host, port, and database number from environment variables
     std::string REDIS_HOST = getEnvironmentVariable("REDIS_HOST");
     std::string REDIS_PORT_STR = getEnvironmentVariable("REDIS_PORT");
+    std::string REDIS_DB_NUM_STR = getEnvironmentVariable("REDIS_DB_NUM");
 
-    // Convert the Redis port to an integer
+    // Convert the Redis port and database number to integers
     int REDIS_PORT = 6379; // Default port
+    int REDIS_DB_NUM = 0; // Default database number
+
     if (!REDIS_PORT_STR.empty()) {
         try {
             REDIS_PORT = std::stoi(REDIS_PORT_STR);
@@ -22,7 +25,16 @@ int main() {
         }
     }
 
-    // Establish a connection to the Redis server
+    if (!REDIS_DB_NUM_STR.empty()) {
+        try {
+            REDIS_DB_NUM = std::stoi(REDIS_DB_NUM_STR);
+        } catch (const std::exception& e) {
+            std::cerr << "Failed to parse Redis database number: " << e.what() << std::endl;
+            return 1;
+        }
+    }
+
+    // Establish a connection to the Redis server with the specified database number
     redisContext* redis = redisConnect(REDIS_HOST.c_str(), REDIS_PORT);
 
     if (redis == nullptr || redis->err) {
@@ -34,6 +46,16 @@ int main() {
         }
         return 1;
     }
+
+    // Set the Redis database number
+    redisReply* selectReply = (redisReply*)redisCommand(redis, "SELECT %d", REDIS_DB_NUM);
+    if (selectReply == nullptr || redis->err) {
+        std::cerr << "Failed to select Redis database: " << (selectReply ? selectReply->str : "") << std::endl;
+        redisFree(redis);
+        return 1;
+    }
+
+    freeReplyObject(selectReply);
 
     // Create a custom JSON structure {"foo": "bar"}
     json assetData = {
