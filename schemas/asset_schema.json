@@ -1,0 +1,81 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "spec": {
+        "type": "object",
+        "properties": {
+          "repo": { "type": "string" },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "kind": { "type": "string" },
+          "version": { "type": "string" },
+          "lifecycleStage": { "type": "string" },
+          "responsible": { "type": "string" },
+          "team": { "type": "string" },
+          "system": { "type": "string" },
+          "domain": { "type": "string" },
+          "dataSensitivity": { "type": "string" },
+          "tags": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        },
+        "required": [
+          "repo",
+          "name",
+          "description"
+        ]
+      },
+      "relations": {
+        "type": "array",
+        "items": { "type": "string" }
+      },
+      "support": {
+        "type": "object",
+        "properties": {
+          "resolverGroup": { "type": "string" }
+        }
+      },
+      "api": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "schemaPath": { "type": "string" }
+        }
+      },
+      "slo": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "description": { "type": "string" },
+            "type": { "type": "string" },
+            "implementation": { "type": "string" },
+            "target": { "type": "string" },
+            "period": { "type": "integer" }
+          }
+        }
+      },
+      "links": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "url": { "type": "string" },
+            "title": { "type": "string" },
+            "icon": { "type": "string" }
+          }
+        }
+      },
+      "timestamp": { "type": "integer" }
+    },
+    "required": [
+      "spec",
+      "timestamp"
+    ]
+  }
+}
+
