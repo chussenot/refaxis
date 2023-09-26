@@ -1,0 +1,13 @@
+[requires]
+nlohmann_json/3.11.2
+libgit2/1.5.0
+cpptoml/0.1.1
+libcurl/8.2.1
+openssl/[>=1.1.1a]
+zlib/[>=1.2.13]
+cxxopts/2.2.1
+hiredis/1.1.0
+
+[generators]
+PkgConfigDeps
+MesonToolchain

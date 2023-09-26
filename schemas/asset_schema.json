@@ -17,7 +17,6 @@
           "team": { "type": "string" },
           "system": { "type": "string" },
           "domain": { "type": "string" },
-          "dataSensitivity": { "type": "string" },
           "tags": {
             "type": "array",
             "items": { "type": "string" }

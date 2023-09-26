@@ -1,0 +1,7 @@
+packages/**/usr/local/bin/*
+build/*
+.vscode/*
+!**/.gitkeep
+**/*.deb
+config.toml
+**/__pycache__/*

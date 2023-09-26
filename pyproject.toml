@@ -7,7 +7,9 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-
+conan = "1.60.2"
+meson = "1.2.1"
+ninja = "1.11.1"
 
 [tool.poetry.group.dev.dependencies]
 jsonschema = "^4.19.1"
