@@ -2,11 +2,35 @@
 #include <string>
 #include <hiredis/hiredis.h>
 #include <nlohmann/json.hpp>
-#include "utils/env_utils.h"  // Include the environment utility functions
+#include "utils/env_utils.h" 
+#include "cxxopts.hpp"
 
 using json = nlohmann::json;
 
-int main() {
+// Function to execute a Redis command and print the result
+void executeRedisCommand(redisContext* redis, const std::string& command) {
+    redisReply* reply = (redisReply*)redisCommand(redis, command.c_str());
+
+    if (reply == nullptr || redis->err) {
+        std::cerr << "Redis command error: " << (reply ? reply->str : "") << std::endl;
+    } else {
+        std::cout << "Redis command result: " << reply->str << std::endl;
+    }
+
+    freeReplyObject(reply);
+}
+
+int main(int argc, char* argv[]) {
+
+    cxxopts::Options options("refaxis", "assets referencial");
+    
+    // Define a flag for the --eval option
+    options.add_options()
+        ("eval", "Execute Redis command", cxxopts::value<std::string>());
+
+    // Parse command-line options
+    auto result = options.parse(argc, argv);
+
     // Get the Redis host, port, and database number from environment variables
     std::string REDIS_HOST = getEnvironmentVariable("REDIS_HOST");
     std::string REDIS_PORT_STR = getEnvironmentVariable("REDIS_PORT");
@@ -57,29 +81,39 @@ int main() {
 
     freeReplyObject(selectReply);
 
-    // Create a custom JSON structure {"foo": "bar"}
-    json assetData = {
-        {"foo", "bar"}
-    };
+    // Check if the --eval option is specified
+    if (result.count("eval")) {
+        // Execute the provided Redis command
+        std::string redisCommand = result["eval"].as<std::string>();
+        executeRedisCommand(redis, redisCommand);
+        redisFree(redis);
 
-    // Generate a unique identifier (UUID) for the asset
-    std::string assetId = "foo";
-
-    // Convert the asset data to a string
-    std::string assetString = assetData.dump();
-
-    // Store the asset data in Redis using the assetId as the key
-    redisReply* reply = (redisReply*)redisCommand(redis, "SET %s \"%s\"", assetId.c_str(), assetString.c_str());
-
-    if (reply == nullptr || redis->err) {
-        std::cerr << "Redis SET error: " << (reply ? reply->str : "") << std::endl;
+        return 0;
     } else {
-        std::cout << "Asset data stored in Redis with key: " << assetId << std::endl;
+
+        // Create a custom JSON structure {"foo": "bar"}
+        json assetData = {
+            {"foo", "bar"}
+        };
+
+        // Generate a unique identifier (UUID) for the asset
+        std::string assetId = "foo";
+
+        // Convert the asset data to a string
+        std::string assetString = assetData.dump();
+
+        // Store the asset data in Redis using the assetId as the key
+        redisReply* reply = (redisReply*)redisCommand(redis, "SET %s \"%s\"", assetId.c_str(), assetString.c_str());
+
+        if (reply == nullptr || redis->err) {
+            std::cerr << "Redis SET error: " << (reply ? reply->str : "") << std::endl;
+        } else {
+            std::cout << "Asset data stored in Redis with key: " << assetId << std::endl;
+        }
+
+        // Free the Redis reply and disconnect from the Redis server
+        freeReplyObject(reply);
+        redisFree(redis);
+        return 0;
     }
-
-    // Free the Redis reply and disconnect from the Redis server
-    freeReplyObject(reply);
-    redisFree(redis);
-
-    return 0;
 }
