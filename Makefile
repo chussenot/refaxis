@@ -33,7 +33,7 @@ help:
 install_uuid_dev:
 	sudo apt-get install uuid-dev  # Use the appropriate package manager for your distribution
 
-install: install_uuid_dev
+install:
 	@$(POETRY) install
 
 # Install dependencies using Conan
@@ -52,7 +52,7 @@ build:
 # Clean the build directory & some artefacts
 clean:
 	@rm -Rf $(BUILDDIR)/* && touch $(BUILDDIR)/.gitkeep
-	@rm $(PACKAGESDIR)/*.deb
+	@rm -f $(PACKAGESDIR)/*.deb
 
 package:
 	@echo 'Ready to package'

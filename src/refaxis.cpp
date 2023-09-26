@@ -1,17 +1,63 @@
 #include <iostream>
-#include <fstream>
-#include <sstream>
 #include <string>
 #include <hiredis/hiredis.h>
 #include <nlohmann/json.hpp>
-#include <uuid/uuid.h>  // For generating UUIDs
+#include "utils/env_utils.h"  // Include the environment utility functions
 
 using json = nlohmann::json;
 
-// Define your Redis server connection details
-const char* REDIS_HOST = "localhost";
-const int REDIS_PORT = 6379;
-
 int main() {
+    // Get the Redis host and port from environment variables
+    std::string REDIS_HOST = getEnvironmentVariable("REDIS_HOST");
+    std::string REDIS_PORT_STR = getEnvironmentVariable("REDIS_PORT");
+
+    // Convert the Redis port to an integer
+    int REDIS_PORT = 6379; // Default port
+    if (!REDIS_PORT_STR.empty()) {
+        try {
+            REDIS_PORT = std::stoi(REDIS_PORT_STR);
+        } catch (const std::exception& e) {
+            std::cerr << "Failed to parse Redis port: " << e.what() << std::endl;
+            return 1;
+        }
+    }
+
+    // Establish a connection to the Redis server
+    redisContext* redis = redisConnect(REDIS_HOST.c_str(), REDIS_PORT);
+
+    if (redis == nullptr || redis->err) {
+        if (redis) {
+            std::cerr << "Redis connection error: " << redis->errstr << std::endl;
+            redisFree(redis);
+        } else {
+            std::cerr << "Could not allocate Redis context" << std::endl;
+        }
+        return 1;
+    }
+
+    // Create a custom JSON structure {"foo": "bar"}
+    json assetData = {
+        {"foo", "bar"}
+    };
+
+    // Generate a unique identifier (UUID) for the asset
+    std::string assetId = "foo";
+
+    // Convert the asset data to a string
+    std::string assetString = assetData.dump();
+
+    // Store the asset data in Redis using the assetId as the key
+    redisReply* reply = (redisReply*)redisCommand(redis, "SET %s \"%s\"", assetId.c_str(), assetString.c_str());
+
+    if (reply == nullptr || redis->err) {
+        std::cerr << "Redis SET error: " << (reply ? reply->str : "") << std::endl;
+    } else {
+        std::cout << "Asset data stored in Redis with key: " << assetId << std::endl;
+    }
+
+    // Free the Redis reply and disconnect from the Redis server
+    freeReplyObject(reply);
+    redisFree(redis);
+
     return 0;
 }
