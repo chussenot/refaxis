@@ -20,13 +20,31 @@ void executeRedisCommand(redisContext* redis, const std::string& command) {
     freeReplyObject(reply);
 }
 
+// Function to list all keys in Redis and print them to standard output
+void listAllKeys(redisContext* redis) {
+    redisReply* reply = (redisReply*)redisCommand(redis, "KEYS *");
+
+    if (reply == nullptr || redis->err) {
+        std::cerr << "Redis KEYS command error: " << (reply ? reply->str : "") << std::endl;
+    } else {
+        if (reply->type == REDIS_REPLY_ARRAY) {
+            for (size_t i = 0; i < reply->elements; ++i) {
+                std::cout << "Key: " << reply->element[i]->str << std::endl;
+            }
+        }
+    }
+
+    freeReplyObject(reply);
+}
+
 int main(int argc, char* argv[]) {
 
     cxxopts::Options options("refaxis", "assets referencial");
     
-    // Define a flag for the --eval option
+    // Define flags for the --eval and --list-keys options
     options.add_options()
-        ("eval", "Execute Redis command", cxxopts::value<std::string>());
+        ("eval", "Execute Redis command", cxxopts::value<std::string>())
+        ("list-keys", "List all keys in Redis");
 
     // Parse command-line options
     auto result = options.parse(argc, argv);
@@ -86,6 +104,13 @@ int main(int argc, char* argv[]) {
         // Execute the provided Redis command
         std::string redisCommand = result["eval"].as<std::string>();
         executeRedisCommand(redis, redisCommand);
+        redisFree(redis);
+
+        return 0;
+    } else if (result.count("list-keys")) { // Check for the new --list-keys option
+        listAllKeys(redis);
+
+        // Free the Redis reply and disconnect from the Redis server
         redisFree(redis);
 
         return 0;
